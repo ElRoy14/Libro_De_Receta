@@ -1,24 +1,27 @@
 import { Router } from 'express';
 import passport from 'passport';
+import { login, logout } from '../services/AuthService';
+import { AuthGoogle, AuthGoogleCallback } from '../services/OAuthService';
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 const router = Router();
 
-router.get('/auth/google', passport.authenticate('google',
-    {
-        scope: ['profile', 'email']
-    })
-);
+router.get('/auth/google', (req, res) => {
+    AuthGoogle(req, res);
+});
 
-router.get('/auth/google/callback',
-    passport.authenticate('google', { failureRedirect: `${FRONTEND_URL}/login` }),
-    function (req, res) {
-        req.session.save(() => {
-            console.log('Session saved successfully');
-            res.redirect(FRONTEND_URL);
-        });
-    }
-);
+router.get('/auth/google/callback', (req, res) => {
+    AuthGoogleCallback(req, res);
+});
+
+router.get('/auth/login', (req, res) => {
+    login(req, res);
+});
+
+router.get('/auth/logout', (req, res) => {
+    logout(req, res);
+});
+
 
 export default router;
