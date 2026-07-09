@@ -1,20 +1,41 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import { signup, ApiError } from '../services/authService'
 
 const API_URL = 'http://localhost:3000'
+
+const router = useRouter()
 
 const name = ref('')
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+const error = ref('')
+const isSubmitting = ref(false)
 
 function signupWithGoogle() {
   window.location.href = `${API_URL}/auth/google`
 }
 
-function handleSubmit() {
-  // TODO: wire up to the sign-up endpoint once it exists.
+function splitName(fullName: string): { first: string; last: string } {
+  const [first, ...rest] = fullName.trim().split(/\s+/)
+  return { first: first ?? '', last: rest.join(' ') }
+}
+
+async function handleSubmit() {
+  error.value = ''
+  isSubmitting.value = true
+
+  try {
+    const { first, last } = splitName(name.value)
+    await signup({ first, last, email: email.value, password: password.value })
+    router.push('/login')
+  } catch (err) {
+    error.value = err instanceof ApiError ? err.message : 'No se pudo crear la cuenta'
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -118,7 +139,11 @@ function handleSubmit() {
             </button>
           </div>
 
-          <button type="submit" class="submit-btn">Crear Cuenta</button>
+          <p v-if="error" class="error">{{ error }}</p>
+
+          <button type="submit" class="submit-btn" :disabled="isSubmitting">
+            {{ isSubmitting ? 'Creando cuenta...' : 'Crear Cuenta' }}
+          </button>
         </form>
 
         <p class="signin">¿Ya tienes cuenta? <RouterLink to="/login">Inicia sesión</RouterLink></p>
@@ -333,6 +358,17 @@ input:focus {
 
 .submit-btn:hover {
   background: #bd6f4d;
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin: -0.4rem 0 1rem;
 }
 
 .signin {
