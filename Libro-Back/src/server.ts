@@ -1,15 +1,23 @@
+import "reflect-metadata";
 import "dotenv/config";
+import "./config/container/index";
 import express from "express";
+import cors from "cors";
 import { connectDatabase } from "./config/database";
 import { configureAuth } from "./middlewares/authorize";
 import "./config/passport";
-import authRoutes from "./controllers/AuthController";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(
+    cors({
+        origin: process.env.FRONTEND_URL || "http://localhost:5174",
+        credentials: true,
+    })
+);
+app.use(express.json());
 configureAuth(app);
-app.use(authRoutes);
 
 app.get("/", (req, res) => {
     res.json({

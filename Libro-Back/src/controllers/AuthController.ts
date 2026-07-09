@@ -1,27 +1,73 @@
 import { Router } from 'express';
 import passport from 'passport';
-import { login, logout } from '../services/AuthService';
-import { AuthGoogle, AuthGoogleCallback } from '../services/OAuthService';
+import { injectable, inject } from 'tsyringe';
+import IOAuthService from '../interfaces/IOAuthService';
+import IAuthService from '../interfaces/IAuthService';
+import { CreateUserDto } from '../dtos/CreateUserDto';
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+@injectable()
+export default class AuthController {
 
-const router = Router();
+    constructor(
+        @inject("IOAuthService")
+        private readonly oAuthService: IOAuthService,
+        @inject("IAuthService")
+        private readonly authService: IAuthService
+    ) {}
 
-router.get('/auth/google', (req, res) => {
-    AuthGoogle(req, res);
-});
+    login = async (req: any, res: any, next: any) => {
+        try
+        {
+            const result = await this.authService.login(req, res, next);
+            res.status(200).json(result);
+        }
+        catch(error){
+            next(error);
+        }
+    }
 
-router.get('/auth/google/callback', (req, res) => {
-    AuthGoogleCallback(req, res);
-});
+    logout = async (req: any, res: any, next: any) => {
+        try
+        {
+            const result = await this.authService.logout(req, res, next);
+            res.status(200).json(result);
+        }
+        catch(error){
+            next(error);
+        }
+    }
 
-router.get('/auth/login', (req, res) => {
-    login(req, res);
-});
+    signup = async (req: any, res: any, next: any) => {
+        try
+        {
+            const userDto: CreateUserDto = req.body;
+            const result = await this.authService.signup(userDto, res, next);
+            res.status(201).json(result);
+        }
+        catch(error){
+            next(error);
+        }
+    }
 
-router.get('/auth/logout', (req, res) => {
-    logout(req, res);
-});
+    AuthGoogle = async (req: any, res: any, next: any) => {
+        try
+        {
+            const result = await this.oAuthService.AuthGoogle(req, res);
+            res.status(200).json(result);
+        }
+        catch(error){
+            next(error);
+        }
+    }
 
-
-export default router;
+    AuthGoogleCallback = async (req: any, res: any, next: any) => {
+        try
+        {
+            const result = await this.oAuthService.AuthGoogleCallback(req, res);
+            res.status(200).json(result);
+        }
+        catch(error){
+            next(error);
+        }
+    }
+}
