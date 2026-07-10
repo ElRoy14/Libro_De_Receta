@@ -1,49 +1,65 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import { login, ApiError } from '../../services/authService'
 
 const API_URL = 'http://localhost:3000'
 
+const router = useRouter()
+
 const email = ref('')
 const password = ref('')
+const error = ref('')
 const showPassword = ref(false)
+const isSubmitting = ref(false)
 
 function loginWithGoogle() {
   window.location.href = `${API_URL}/auth/google`
 }
 
-function handleSubmit() {
-  // TODO: wire up to the email/password login endpoint once it exists.
+async function handleSubmit() {
+  try{
+    await login({ email: email.value, password: password.value})
+    router.push('/recetas')
+  }
+  catch(err){
+    error.value = err instanceof ApiError ? err.message : 'No se pudo crear la cuenta'
+  }
+  finally{
+    isSubmitting.value = false
+  }
 }
 </script>
 
 <template>
   <div class="login-page">
-    <div class="login-card">
-      <header class="hero">
-        <span class="blob blob--1"></span>
-        <span class="blob blob--2"></span>
+    <div class="hero-panel">
+      <span class="blob blob--1"></span>
+      <span class="blob blob--2"></span>
+      <span class="blob blob--3"></span>
+      <span class="blob blob--4"></span>
 
-        <div class="hero-content">
-          <div class="icon-box">
-            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M6 3v8a2 2 0 0 0 2 2v8M6 3a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2M6 3a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2M18 3v18M18 3a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3"
-                stroke="#C97B58"
-                stroke-width="1.4"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-          <h1>Libro de Recetas</h1>
-          <p>Tu colección de sabores</p>
+      <div class="hero-content">
+        <div class="icon-box">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M6 3v8a2 2 0 0 0 2 2v8M6 3a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2M6 3a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2M18 3v18M18 3a3 3 0 0 0-3 3v3a3 3 0 0 0 3 3"
+              stroke="#C97B58"
+              stroke-width="1.4"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
         </div>
-      </header>
+        <h1>Libro de Recetas</h1>
+        <p>Tu colección de sabores</p>
+      </div>
+    </div>
 
-      <section class="form-panel">
+    <div class="form-panel">
+      <div class="form-inner">
         <h2>Bienvenido de vuelta</h2>
-        <p class="subtitle">Inicia sesión para continuar con tus recetas</p>
+        <p class="subtitle">Inicia sesión para acceder a tus recetas</p>
 
         <button type="button" class="google-btn" @click="loginWithGoogle">
           <svg viewBox="0 0 24 24" width="20" height="20">
@@ -116,11 +132,15 @@ function handleSubmit() {
 
           <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
 
-          <button type="submit" class="submit-btn">Iniciar Sesión</button>
+          <p v-if="error" class="error">{{ error }}</p>
+
+          <button type="submit" class="submit-btn" :disabled="isSubmitting">
+            {{ isSubmitting ? 'Iniciando Sesión...' : 'Iniciar Sesión' }}
+          </button>
         </form>
 
         <p class="signup">¿No tienes cuenta? <RouterLink to="/signup">Crear cuenta</RouterLink></p>
-      </section>
+      </div>
     </div>
   </div>
 </template>
@@ -129,25 +149,16 @@ function handleSubmit() {
 .login-page {
   min-height: 100vh;
   display: flex;
+}
+
+.hero-panel {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 380px;
-  border-radius: 28px;
-  overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
-  background: #fff;
-}
-
-.hero {
-  position: relative;
-  padding: 2.5rem 1.5rem 3.5rem;
-  text-align: center;
-  overflow: hidden;
+  padding: 3rem;
   background: linear-gradient(155deg, #e7a583 0%, #c97b58 100%);
 }
 
@@ -158,63 +169,85 @@ function handleSubmit() {
 }
 
 .blob--1 {
-  width: 90px;
-  height: 90px;
-  top: -20px;
-  left: -20px;
+  width: 100px;
+  height: 100px;
+  top: 12%;
+  left: 10%;
 }
 
 .blob--2 {
-  width: 60px;
-  height: 60px;
-  bottom: 10px;
-  right: 10px;
+  width: 70px;
+  height: 70px;
+  top: 20%;
+  right: 16%;
+}
+
+.blob--3 {
+  width: 140px;
+  height: 140px;
+  bottom: 8%;
+  right: 8%;
+}
+
+.blob--4 {
+  width: 70px;
+  height: 70px;
+  bottom: 14%;
+  left: 12%;
 }
 
 .hero-content {
   position: relative;
+  text-align: center;
+  max-width: 320px;
 }
 
 .icon-box {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 1rem;
-  border-radius: 18px;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  border-radius: 20px;
   background: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
 }
 
 .icon-box svg {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
 }
 
-.hero h1 {
+.hero-content h1 {
   color: #fff;
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
-  margin: 0 0 0.25rem;
+  margin: 0 0 0.5rem;
 }
 
-.hero p {
+.hero-content p {
   color: rgba(255, 255, 255, 0.85);
-  font-size: 0.9rem;
+  font-size: 1rem;
   margin: 0;
 }
 
 .form-panel {
-  margin-top: -1.75rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #fff;
-  border-radius: 28px 28px 0 0;
-  padding: 2rem 1.5rem 1.75rem;
-  position: relative;
+  padding: 3rem 2rem;
 }
 
-.form-panel h2 {
-  font-size: 1.35rem;
+.form-inner {
+  width: 100%;
+  max-width: 360px;
+}
+
+.form-inner h2 {
+  font-size: 1.75rem;
   font-weight: 700;
   color: #2d2420;
   margin: 0 0 0.35rem;
@@ -222,8 +255,8 @@ function handleSubmit() {
 
 .subtitle {
   color: #8b8078;
-  font-size: 0.85rem;
-  margin: 0 0 1.5rem;
+  font-size: 0.9rem;
+  margin: 0 0 1.75rem;
 }
 
 .google-btn {
@@ -233,7 +266,7 @@ function handleSubmit() {
   justify-content: center;
   gap: 0.6rem;
   padding: 0.85rem 1rem;
-  border-radius: 999px;
+  border-radius: 12px;
   border: 1px solid #ece3dd;
   background: #fff;
   font-size: 0.9rem;
@@ -328,6 +361,12 @@ input:focus {
   text-decoration: underline;
 }
 
+.error {
+  color: #c0392b;
+  font-size: 0.8rem;
+  margin: -0.4rem 0 1rem;
+}
+
 .submit-btn {
   width: 100%;
   padding: 0.95rem;
@@ -342,6 +381,11 @@ input:focus {
 
 .submit-btn:hover {
   background: #bd6f4d;
+}
+
+.submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .signup {
@@ -359,5 +403,21 @@ input:focus {
 
 .signup :deep(a:hover) {
   text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .login-page {
+    flex-direction: column;
+  }
+
+  .hero-panel {
+    flex: none;
+    min-height: 280px;
+    padding: 2.5rem 1.5rem;
+  }
+
+  .form-panel {
+    padding: 2.5rem 1.5rem 3rem;
+  }
 }
 </style>
