@@ -1,9 +1,11 @@
-import { IUser } from "./IUser";
+import { IUser } from "../models/IUser";
 
 export default class IUserRepository {
     async getAllUsers(): Promise<IUser[]>  { throw new Error("Not implemented");}
 
     async getUserById(id: string): Promise<IUser | null> { throw new Error("Not implemented");}
+
+    async getUserByEmail(email: string): Promise<IUser | null> { throw new Error("Not implemented");}
 
     async createUser(user: IUser): Promise<void> { throw new Error("Not implemented");}
 

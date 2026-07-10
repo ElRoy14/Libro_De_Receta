@@ -1,5 +1,5 @@
 import { inject, injectable } from "tsyringe";
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../models/IUser";
 import IUserRepository from "../interfaces/IUserRepository";
 import IUserService from "../interfaces/IUserService";
 

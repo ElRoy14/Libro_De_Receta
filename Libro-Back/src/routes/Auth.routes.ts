@@ -8,7 +8,7 @@ const router = Router();
 
 const controller = container.resolve(AuthController);
 
-router.get('/auth/login', 
+router.post('/auth/login', 
     controller.login
 );
 

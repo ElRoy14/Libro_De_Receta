@@ -4,7 +4,7 @@ export interface IUser extends Document {
     first: string;
     last: string;
     email: string;
-    password?: string;
+    password: string;
     createdAt: Date;
     updatedAt?: Date;
 }

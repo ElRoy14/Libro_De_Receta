@@ -2,10 +2,11 @@ import { injectable, inject } from "tsyringe";
 import { User } from "../Schemas/User";
 import IUserRepository from "../interfaces/IUserRepository";
 import IAuthService from "../interfaces/IAuthService";
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../models/IUser";
 import { CreateUserDto } from "../dtos/CreateUserDto";
 import IPasswordHasher from "../interfaces/IPasswordHasher";
 import { use } from "passport";
+import { LoginDto } from "../dtos/LoginDto";
 
 @injectable()
 export default class AuthService implements IAuthService{
@@ -17,10 +18,17 @@ export default class AuthService implements IAuthService{
         private readonly passwordHasher: IPasswordHasher
     ) {}
 
-    async login(req: any, res: any, next: any): Promise<void> {
-        // Assuming user is authenticated and user info is available in req.user
-        if (req.user) {
-            res.status(200).json({ message: 'Login successful', user: req.user });
+    async login(loginUserDto: LoginDto, res: any, next: any): Promise<void> {
+
+        const existing = await this.userRepository.getUserByEmail(loginUserDto.email);
+        console.log(existing);
+        if(!existing)
+            throw new Error("El usuario no existe");
+
+        const correctPassword = await this.passwordHasher.verify(existing.password, loginUserDto.password);
+
+        if (correctPassword) {
+            res.status(200).json({ message: 'Login successful', user: existing.first });
         } else {
             res.status(401).json({ message: 'User not authenticated' });
         }
@@ -44,10 +52,10 @@ export default class AuthService implements IAuthService{
     }
 
     async signup(userDto: CreateUserDto, res: any, next: any): Promise<void> {
+        
+        const existing = await this.userRepository.getUserByEmail(userDto.email);
 
-        const existing = await this.userRepository.getAllUsers();
-
-        if (existing.some(x => x.email === userDto.email))
+        if(existing)
             throw new Error("El Usuario ya existe.");
 
         const hashedPassword = await this.passwordHasher.hash(userDto.password);

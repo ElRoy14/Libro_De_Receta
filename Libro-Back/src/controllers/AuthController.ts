@@ -4,6 +4,7 @@ import { injectable, inject } from 'tsyringe';
 import IOAuthService from '../interfaces/IOAuthService';
 import IAuthService from '../interfaces/IAuthService';
 import { CreateUserDto } from '../dtos/CreateUserDto';
+import { LoginDto } from '../dtos/LoginDto';
 
 @injectable()
 export default class AuthController {
@@ -18,7 +19,8 @@ export default class AuthController {
     login = async (req: any, res: any, next: any) => {
         try
         {
-            const result = await this.authService.login(req, res, next);
+            const loginUserDto: LoginDto = req.body;
+            const result = await this.authService.login(loginUserDto, res, next);
             res.status(200).json(result);
         }
         catch(error){
@@ -52,8 +54,7 @@ export default class AuthController {
     AuthGoogle = async (req: any, res: any, next: any) => {
         try
         {
-            const result = await this.oAuthService.AuthGoogle(req, res);
-            res.status(200).json(result);
+            this.oAuthService.AuthGoogle(req, res, next);
         }
         catch(error){
             next(error);
@@ -63,8 +64,7 @@ export default class AuthController {
     AuthGoogleCallback = async (req: any, res: any, next: any) => {
         try
         {
-            const result = await this.oAuthService.AuthGoogleCallback(req, res);
-            res.status(200).json(result);
+            this.oAuthService.AuthGoogleCallback(req, res, next);
         }
         catch(error){
             next(error);

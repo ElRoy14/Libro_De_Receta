@@ -1,4 +1,4 @@
-import { IUser } from "../interfaces/IUser";
+import { IUser } from "../models/IUser";
 import IUserRepository from "../interfaces/IUserRepository";
 import { User } from "../Schemas/User";
 
@@ -9,6 +9,9 @@ export default class UserRepository implements IUserRepository {
     }
     async getUserById(id: string): Promise<IUser | null> {
         return User.findById(id).exec();
+    }
+    async getUserByEmail(email: string): Promise<IUser | null> {
+        return await User.findOne({ email: email }).select('+password');
     }
     async createUser(user: IUser): Promise<void> {
         return await User.create(user)
